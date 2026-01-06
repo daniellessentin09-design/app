@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Meine Test App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .app {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 300px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+        <h1>Test App</h1>
+        <p>Button wurde geklickt:</p>
+        <h2 id="counter">0</h2>
+        <button onclick="countClick()">Klick mich</button>
+    </div>
+
+    <script>
+        let count = 0;
+
+        function countClick() {
+            count++;
+            document.getElementById("counter").innerText = count;
+        }
+    </script>
+
+</body>
+</html>

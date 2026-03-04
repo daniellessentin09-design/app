@@ -1,222 +1,675 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>Kassensystem mit automatischem Kassenzettel</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        :root {
-            --bg: #f4f6f8;
-            --card: #ffffff;
-            --accent: #0069d9;
-            --accent-dark: #0053ad;
-            --danger: #dc3545;
-            --text: #212529;
-            --muted: #6c757d;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 24px;
-        }
-
-        .layout {
-            max-width: 1000px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        }
-
-        h1 {
-            margin-top: 0;
-            font-size: 1.45rem;
-        }
-
-        h2 {
-            margin-top: 0;
-            font-size: 1.15rem;
-        }
-
-        .items {
-            display: grid;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .item-btn {
-            border: 1px solid #d6dce2;
-            border-radius: 8px;
-            background: #f8fafc;
-            padding: 12px;
-            text-align: left;
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-
-        .item-btn:hover {
-            border-color: var(--accent);
-            background: #eef5ff;
-        }
-
-        button {
-            border: none;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 0.95rem;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-dark);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            opacity: 0.9;
-        }
-
-        .receipt {
-            background: #f8f9fa;
-            border: 1px dashed #ced4da;
-            border-radius: 10px;
-            padding: 14px;
-            font-family: "Courier New", monospace;
-            white-space: pre-wrap;
-            min-height: 260px;
-            margin-bottom: 14px;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .muted {
-            color: var(--muted);
-            font-size: 0.9rem;
-            margin-top: 8px;
-        }
-    </style>
-</head>
-<body>
-<div class="layout">
-    <section class="card">
-        <h1>Kassensystem</h1>
-        <p>Artikel antippen, um sie zum Warenkorb hinzuzufügen.</p>
-
-        <div class="items" id="productList"></div>
-
-        <div class="controls">
-            <button class="btn-danger" onclick="clearCart()">Warenkorb leeren</button>
-        </div>
-        <p class="muted">Der Kassenzettel wird automatisch bei jeder Änderung aktualisiert.</p>
-    </section>
-
-    <section class="card">
-        <h2>Automatischer Kassenzettel</h2>
-        <div class="receipt" id="receipt"></div>
-        <div class="controls">
-            <button class="btn-primary" onclick="window.print()">Kassenzettel drucken</button>
-        </div>
-    </section>
-</div>
-
-<script>
-    const products = [
-        { name: "Brötchen", price: 0.65 },
-        { name: "Kaffee", price: 2.4 },
-        { name: "Milch", price: 1.35 },
-        { name: "Schokolade", price: 1.95 },
-        { name: "Apfelsaft", price: 2.15 }
-    ];
-
-    const cart = [];
-
-    function formatEuro(value) {
-        return value.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pro POS System</title>
+  <style>
+    :root {
+      --bg: #f3f5f9;
+      --card: #ffffff;
+      --line: #d8dde7;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-strong: #1d4ed8;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 12px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
-    function addToCart(product) {
-        cart.push(product);
-        updateReceipt();
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1, h2, h3 { margin: 0 0 12px; }
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.1rem; }
+    h3 { font-size: 1rem; }
+    p { margin: 0; }
+
+    .layout {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+    }
+
+    .stack { display: grid; gap: 16px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .muted { color: var(--muted); font-size: 0.9rem; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-strong); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-ghost { background: #eef2ff; color: #1f2937; }
+
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .product {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfdff;
+      display: grid;
+      gap: 8px;
+    }
+
+    .product .name { font-weight: 700; }
+    .product .meta { color: var(--muted); font-size: 0.85rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.93rem;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      padding: 8px 6px;
+      vertical-align: middle;
+    }
+
+    .num { text-align: right; }
+
+    .receipt {
+      background: #f8fafc;
+      border: 1px dashed #9ca3af;
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 210px;
+      font-family: "Courier New", monospace;
+      white-space: pre-wrap;
+    }
+
+    .history {
+      display: grid;
+      gap: 8px;
+      max-height: 250px;
+      overflow: auto;
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fcfcff;
+      cursor: pointer;
+    }
+
+    @media (max-width: 1000px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="stack">
+      <section class="card">
+        <div class="toolbar">
+          <h1>POS System (Professionell)</h1>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="openCreateProduct()">+ Produkt anlegen</button>
+            <button class="btn btn-ghost" onclick="resetDemoData()">Demo zurücksetzen</button>
+          </div>
+        </div>
+        <p class="muted">Produkte verwalten, im Warenkorb erfassen und Verkäufe auschecken – inkl. automatisch generiertem Kassenzettel.</p>
+      </section>
+
+      <section class="card">
+        <h2>Produktkatalog</h2>
+        <div class="products" id="productGrid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Produkt anlegen / bearbeiten</h2>
+        <div class="grid-2">
+          <input id="pName" placeholder="Produktname" />
+          <input id="pPrice" type="number" step="0.01" min="0" placeholder="Preis (EUR)" />
+          <input id="pSku" placeholder="SKU / Artikelnummer" />
+          <input id="pStock" type="number" min="0" step="1" placeholder="Lagerbestand" />
+        </div>
+        <div style="margin-top:10px" class="actions">
+          <button class="btn btn-success" id="saveBtn" onclick="saveProduct()">Produkt speichern</button>
+          <button class="btn btn-ghost" onclick="clearProductForm()">Formular leeren</button>
+        </div>
+        <p class="muted" id="formStatus" style="margin-top:10px">Modus: Neues Produkt.</p>
+      </section>
+
+      <section class="card">
+        <h2>GitHub-Speicherung (optional)</h2>
+        <p class="muted" style="margin-bottom:10px">Speichert alle POS-Daten (Produkte, Verkäufe, Einstellungen) als JSON-Datei in einem GitHub-Repository.</p>
+        <div class="grid-2">
+          <input id="ghOwner" placeholder="Owner (z. B. mein-user)" />
+          <input id="ghRepo" placeholder="Repo (z. B. mein-pos-repo)" />
+          <input id="ghBranch" placeholder="Branch (z. B. main)" value="main" />
+          <input id="ghPath" placeholder="Pfad (z. B. data/pos-state.json)" value="data/pos-state.json" />
+        </div>
+        <input id="ghToken" placeholder="GitHub Token (repo scope)" style="margin-top:10px" />
+        <div class="actions" style="margin-top:10px">
+          <button class="btn btn-primary" onclick="saveToGitHub()">Auf GitHub speichern</button>
+          <button class="btn btn-ghost" onclick="loadFromGitHub()">Von GitHub laden</button>
+        </div>
+        <p class="muted" id="ghStatus" style="margin-top:10px">Status: Noch keine GitHub-Aktion.</p>
+      </section>
+    </div>
+
+    <div class="stack">
+      <section class="card">
+        <div class="toolbar">
+          <h2>Warenkorb</h2>
+          <div class="actions">
+            <button class="btn btn-danger" onclick="clearCart()">Warenkorb leeren</button>
+            <button class="btn btn-success" onclick="checkout()">Checkout</button>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Produkt</th>
+              <th class="num">Menge</th>
+              <th class="num">Einzelpreis</th>
+              <th class="num">Summe</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="cartTable"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3"><strong>Gesamt</strong></td>
+              <td class="num"><strong id="cartTotal">0,00 €</strong></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>Automatischer Kassenzettel</h2>
+        <div class="receipt" id="receipt"></div>
+        <div class="actions" style="margin-top:10px">
+          <button class="btn btn-primary" onclick="window.print()">Kassenzettel drucken</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Verkaufsverlauf</h2>
+        <div class="history" id="historyList"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'pos_pro_state_v2';
+
+    let state = {
+      products: [
+        { id: crypto.randomUUID(), name: 'Brötchen', price: 0.65, sku: 'SKU-1001', stock: 80 },
+        { id: crypto.randomUUID(), name: 'Kaffee', price: 2.40, sku: 'SKU-1002', stock: 50 },
+        { id: crypto.randomUUID(), name: 'Milch', price: 1.35, sku: 'SKU-1003', stock: 40 }
+      ],
+      cart: [],
+      sales: [],
+      productEditId: null,
+      github: { owner: '', repo: '', branch: 'main', path: 'data/pos-state.json', token: '' }
+    };
+
+    function eur(v) {
+      return Number(v).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+    }
+
+    function persistLocal() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadLocal() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          state = { ...state, ...parsed };
+        }
+      } catch (_) {
+        // ignorieren bei kaputten lokalen Daten
+      }
+    }
+
+    function openCreateProduct() {
+      state.productEditId = null;
+      clearProductForm(false);
+    }
+
+    function clearProductForm(update = true) {
+      document.getElementById('pName').value = '';
+      document.getElementById('pPrice').value = '';
+      document.getElementById('pSku').value = '';
+      document.getElementById('pStock').value = '';
+      document.getElementById('formStatus').innerText = 'Modus: Neues Produkt.';
+      document.getElementById('saveBtn').innerText = 'Produkt speichern';
+      if (update) render();
+    }
+
+    function editProduct(id) {
+      const p = state.products.find(x => x.id === id);
+      if (!p) return;
+      state.productEditId = id;
+      document.getElementById('pName').value = p.name;
+      document.getElementById('pPrice').value = p.price;
+      document.getElementById('pSku').value = p.sku;
+      document.getElementById('pStock').value = p.stock;
+      document.getElementById('formStatus').innerText = `Modus: Bearbeiten (${p.name})`;
+      document.getElementById('saveBtn').innerText = 'Änderungen speichern';
+    }
+
+    function saveProduct() {
+      const name = document.getElementById('pName').value.trim();
+      const price = Number(document.getElementById('pPrice').value);
+      const sku = document.getElementById('pSku').value.trim() || '-';
+      const stock = Number(document.getElementById('pStock').value);
+
+      if (!name || Number.isNaN(price) || price < 0 || Number.isNaN(stock) || stock < 0) {
+        alert('Bitte gültige Produktdaten eingeben.');
+        return;
+      }
+
+      if (state.productEditId) {
+        const idx = state.products.findIndex(p => p.id === state.productEditId);
+        if (idx >= 0) state.products[idx] = { ...state.products[idx], name, price, sku, stock };
+      } else {
+        state.products.push({ id: crypto.randomUUID(), name, price, sku, stock });
+      }
+
+      state.productEditId = null;
+      clearProductForm(false);
+      persistLocal();
+      render();
+    }
+
+    function deleteProduct(id) {
+      if (!confirm('Produkt wirklich löschen?')) return;
+      state.products = state.products.filter(p => p.id !== id);
+      state.cart = state.cart.filter(c => c.productId !== id);
+      persistLocal();
+      render();
+    }
+
+    function addToCart(productId) {
+      const product = state.products.find(p => p.id === productId);
+      if (!product) return;
+      const row = state.cart.find(c => c.productId === productId);
+      const qtyInCart = row ? row.qty : 0;
+
+      if (qtyInCart + 1 > product.stock) {
+        alert('Nicht genug Lagerbestand verfügbar.');
+        return;
+      }
+
+      if (row) row.qty += 1;
+      else state.cart.push({ productId, qty: 1 });
+
+      persistLocal();
+      render();
+    }
+
+    function changeQty(productId, delta) {
+      const row = state.cart.find(c => c.productId === productId);
+      const p = state.products.find(x => x.id === productId);
+      if (!row || !p) return;
+
+      const next = row.qty + delta;
+      if (next <= 0) {
+        state.cart = state.cart.filter(c => c.productId !== productId);
+      } else if (next <= p.stock) {
+        row.qty = next;
+      }
+
+      persistLocal();
+      render();
     }
 
     function clearCart() {
-        cart.length = 0;
-        updateReceipt();
+      state.cart = [];
+      persistLocal();
+      render();
+    }
+
+    function currentCartRows() {
+      return state.cart.map(row => {
+        const p = state.products.find(x => x.id === row.productId);
+        if (!p) return null;
+        return { ...row, product: p, total: row.qty * p.price };
+      }).filter(Boolean);
+    }
+
+    function cartTotal() {
+      return currentCartRows().reduce((sum, r) => sum + r.total, 0);
+    }
+
+    function checkout() {
+      const rows = currentCartRows();
+      if (rows.length === 0) {
+        alert('Warenkorb ist leer.');
+        return;
+      }
+
+      for (const r of rows) {
+        if (r.qty > r.product.stock) {
+          alert(`Bestand reicht nicht für ${r.product.name}.`);
+          return;
+        }
+      }
+
+      rows.forEach(r => {
+        const p = state.products.find(x => x.id === r.productId);
+        p.stock -= r.qty;
+      });
+
+      const sale = {
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        items: rows.map(r => ({ name: r.product.name, price: r.product.price, qty: r.qty, total: r.total })),
+        total: rows.reduce((s, r) => s + r.total, 0)
+      };
+
+      state.sales.unshift(sale);
+      state.cart = [];
+      persistLocal();
+      render(sale);
+    }
+
+    function buildReceipt(fromSale) {
+      const now = new Date();
+      const base = [
+        'PRO POS BELEG',
+        '--------------------------------',
+        `Datum: ${now.toLocaleDateString('de-DE')}`,
+        `Zeit:  ${now.toLocaleTimeString('de-DE')}`,
+        ''
+      ];
+
+      const rows = fromSale ? fromSale.items : currentCartRows().map(r => ({ name: r.product.name, price: r.product.price, qty: r.qty, total: r.total }));
+      if (rows.length === 0) return [...base, 'Keine Positionen im Warenkorb.'].join('\n');
+
+      const lines = rows.map((r, i) => `${String(i + 1).padStart(2, '0')}. ${r.name.padEnd(12, ' ')} x${String(r.qty).padStart(2, ' ')} ${eur(r.total)}`);
+      const total = fromSale ? fromSale.total : rows.reduce((s, x) => s + x.total, 0);
+
+      return [...base, ...lines, '', '--------------------------------', `POSITIONEN: ${rows.length}`, `GESAMT:     ${eur(total)}`, '--------------------------------', 'Danke für Ihren Einkauf!'].join('\n');
+    }
+
+    function showSaleReceipt(saleId) {
+      const sale = state.sales.find(s => s.id === saleId);
+      if (!sale) return;
+      document.getElementById('receipt').innerText = buildReceipt(sale);
+    }
+
+    function resetDemoData() {
+      if (!confirm('Wirklich alle POS-Daten zurücksetzen?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+
+    function encodeBase64Utf8(text) {
+      return btoa(unescape(encodeURIComponent(text)));
+    }
+
+    function decodeBase64Utf8(base64) {
+      return decodeURIComponent(escape(atob(base64)));
+    }
+
+    async function saveToGitHub() {
+      captureGitHubForm();
+      const { owner, repo, branch, path, token } = state.github;
+      const statusEl = document.getElementById('ghStatus');
+
+      if (!owner || !repo || !branch || !path || !token) {
+        statusEl.innerText = 'Status: Bitte alle GitHub-Felder inkl. Token ausfüllen.';
+        return;
+      }
+
+      statusEl.innerText = 'Status: Speichere auf GitHub...';
+
+      try {
+        let sha;
+        const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+        const getResp = await fetch(getUrl, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } });
+        if (getResp.ok) {
+          const existing = await getResp.json();
+          sha = existing.sha;
+        }
+
+        const payload = {
+          message: `POS update ${new Date().toISOString()}`,
+          content: encodeBase64Utf8(JSON.stringify(state, null, 2)),
+          branch,
+          ...(sha ? { sha } : {})
+        };
+
+        const putUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const putResp = await fetch(putUrl, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!putResp.ok) {
+          const errText = await putResp.text();
+          statusEl.innerText = `Status: Fehler beim Speichern (${putResp.status}).`;
+          console.error(errText);
+          return;
+        }
+
+        statusEl.innerText = 'Status: Erfolgreich auf GitHub gespeichert.';
+      } catch (e) {
+        statusEl.innerText = 'Status: Netzwerk- oder API-Fehler beim Speichern.';
+        console.error(e);
+      }
+    }
+
+    async function loadFromGitHub() {
+      captureGitHubForm();
+      const { owner, repo, branch, path, token } = state.github;
+      const statusEl = document.getElementById('ghStatus');
+
+      if (!owner || !repo || !branch || !path || !token) {
+        statusEl.innerText = 'Status: Bitte alle GitHub-Felder inkl. Token ausfüllen.';
+        return;
+      }
+
+      statusEl.innerText = 'Status: Lade Daten von GitHub...';
+
+      try {
+        const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+        const resp = await fetch(getUrl, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } });
+        if (!resp.ok) {
+          statusEl.innerText = `Status: Fehler beim Laden (${resp.status}).`;
+          return;
+        }
+
+        const data = await resp.json();
+        const decoded = decodeBase64Utf8(data.content.replace(/\n/g, ''));
+        const parsed = JSON.parse(decoded);
+
+        state = { ...state, ...parsed, github: state.github };
+        persistLocal();
+        render();
+        statusEl.innerText = 'Status: Daten erfolgreich von GitHub geladen.';
+      } catch (e) {
+        statusEl.innerText = 'Status: Fehler beim Laden oder Parsen.';
+        console.error(e);
+      }
+    }
+
+    function captureGitHubForm() {
+      state.github = {
+        owner: document.getElementById('ghOwner').value.trim(),
+        repo: document.getElementById('ghRepo').value.trim(),
+        branch: document.getElementById('ghBranch').value.trim() || 'main',
+        path: document.getElementById('ghPath').value.trim() || 'data/pos-state.json',
+        token: document.getElementById('ghToken').value.trim()
+      };
+      persistLocal();
+    }
+
+    function hydrateGitHubForm() {
+      document.getElementById('ghOwner').value = state.github.owner || '';
+      document.getElementById('ghRepo').value = state.github.repo || '';
+      document.getElementById('ghBranch').value = state.github.branch || 'main';
+      document.getElementById('ghPath').value = state.github.path || 'data/pos-state.json';
+      document.getElementById('ghToken').value = state.github.token || '';
     }
 
     function renderProducts() {
-        const list = document.getElementById("productList");
-        products.forEach((product) => {
-            const button = document.createElement("button");
-            button.className = "item-btn";
-            button.innerText = `${product.name} — ${formatEuro(product.price)}`;
-            button.onclick = () => addToCart(product);
-            list.appendChild(button);
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = '';
+
+      if (state.products.length === 0) {
+        grid.innerHTML = '<p class="muted">Noch keine Produkte angelegt.</p>';
+        return;
+      }
+
+      state.products.forEach(p => {
+        const box = document.createElement('div');
+        box.className = 'product';
+        box.innerHTML = `
+          <div class="name">${p.name}</div>
+          <div class="meta">${p.sku} • Bestand: ${p.stock}</div>
+          <div><strong>${eur(p.price)}</strong></div>
+          <div class="actions">
+            <button class="btn btn-primary">In Warenkorb</button>
+            <button class="btn btn-ghost">Bearbeiten</button>
+            <button class="btn btn-danger">Löschen</button>
+          </div>
+        `;
+
+        const [addBtn, editBtn, delBtn] = box.querySelectorAll('button');
+        addBtn.onclick = () => addToCart(p.id);
+        editBtn.onclick = () => editProduct(p.id);
+        delBtn.onclick = () => deleteProduct(p.id);
+
+        grid.appendChild(box);
+      });
+    }
+
+    function renderCart() {
+      const body = document.getElementById('cartTable');
+      body.innerHTML = '';
+      const rows = currentCartRows();
+
+      if (rows.length === 0) {
+        body.innerHTML = '<tr><td colspan="5" class="muted">Warenkorb ist leer.</td></tr>';
+      } else {
+        rows.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${r.product.name}</td>
+            <td class="num">${r.qty}</td>
+            <td class="num">${eur(r.product.price)}</td>
+            <td class="num">${eur(r.total)}</td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-ghost">-</button>
+                <button class="btn btn-ghost">+</button>
+                <button class="btn btn-danger">x</button>
+              </div>
+            </td>
+          `;
+          const [minusBtn, plusBtn, removeBtn] = tr.querySelectorAll('button');
+          minusBtn.onclick = () => changeQty(r.productId, -1);
+          plusBtn.onclick = () => changeQty(r.productId, 1);
+          removeBtn.onclick = () => changeQty(r.productId, -9999);
+          body.appendChild(tr);
         });
+      }
+
+      document.getElementById('cartTotal').innerText = eur(cartTotal());
+      document.getElementById('receipt').innerText = buildReceipt();
     }
 
-    function updateReceipt() {
-        const receipt = document.getElementById("receipt");
-        const now = new Date();
-        const header = [
-            "BELEG",
-            "--------------------------------",
-            `Datum: ${now.toLocaleDateString("de-DE")}`,
-            `Zeit:  ${now.toLocaleTimeString("de-DE")}`,
-            ""
-        ];
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      list.innerHTML = '';
 
-        if (cart.length === 0) {
-            receipt.innerText = `${header.join("\n")}Keine Artikel im Warenkorb.`;
-            return;
-        }
+      if (state.sales.length === 0) {
+        list.innerHTML = '<p class="muted">Noch keine Verkäufe abgeschlossen.</p>';
+        return;
+      }
 
-        const itemLines = cart.map((item, index) =>
-            `${String(index + 1).padStart(2, "0")}. ${item.name.padEnd(14, " ")} ${formatEuro(item.price)}`
-        );
-
-        const total = cart.reduce((sum, item) => sum + item.price, 0);
-        const footer = [
-            "",
-            "--------------------------------",
-            `ANZAHL ARTIKEL: ${cart.length}`,
-            `GESAMT:        ${formatEuro(total)}`,
-            "--------------------------------",
-            "Danke für Ihren Einkauf!"
-        ];
-
-        receipt.innerText = [...header, ...itemLines, ...footer].join("\n");
+      state.sales.forEach(sale => {
+        const d = new Date(sale.createdAt);
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.innerHTML = `<strong>${eur(sale.total)}</strong><br><span class="muted">${d.toLocaleString('de-DE')} • ${sale.items.length} Position(en)</span>`;
+        item.onclick = () => showSaleReceipt(sale.id);
+        list.appendChild(item);
+      });
     }
 
-    renderProducts();
-    updateReceipt();
-</script>
+    function render(lastSale = null) {
+      renderProducts();
+      renderCart();
+      renderHistory();
+      hydrateGitHubForm();
+      if (lastSale) document.getElementById('receipt').innerText = buildReceipt(lastSale);
+    }
+
+    loadLocal();
+    render();
+  </script>
 </body>
 </html>
